@@ -1,5 +1,7 @@
 #include <iostream>
 #include <string>
+#include <fstream>
+#include <sstream>
 using namespace std;
 
 struct Expense {
@@ -32,14 +34,95 @@ void editExpense();
     // Function to edit an existing expense
     // Allow user to select an expense and modify its details
 
-void saveData();
-    // Function to save data
-    // csv or txt file format can be used to store data
+void saveData() {
+    ofstream outFile("expenses.txt");
 
-void loadData();
-    // Function to load data
-    // Read data from an existing txt file and populate the records
-    // and wipe previous data (if any) (tentative)
+    if(!outFile) {
+        cout << "Error: Unable to open file for saving." << endl;
+        return;
+    }
+
+    for (int i = 0; i < expenseCount; i++) {
+        outFile << expenses[i].e_date << "|"
+                << expenses[i].e_amount << "|"
+                << expenses[i].e_category << "|"
+                << expenses[i].e_description << endl;
+    }
+    outFile.close();
+
+    cout << "Expenses saved successfully!" << endl;
+}
+
+void loadData() {
+    ifstream inFile("expenses.txt");
+
+    if (!inFile) {
+        cout << "Error: Unable to open file for loading." << endl;
+        return;
+    }
+
+    Expense loadedExpenses[MAX_EXPENSES];
+    int loadedCount = 0;
+    string line;
+
+    while(getline(inFile, line)) {
+        if (line.empty()) {
+            continue;
+        }
+
+        if (loadedCount >= MAX_EXPENSES) {
+            cout << "Error: File contains too many expenses." << endl;
+            inFile.close();
+            return;
+        }
+
+        stringstream ss(line);
+        string date, amountText, category, description;
+
+        if(!getline(ss, date, '|') ||
+           !getline(ss, amountText, '|') ||
+           !getline(ss, category, '|') ||
+           !getline(ss, description)) {
+
+            cout << "Error: Invalid data found in file." << endl;
+            inFile.close();
+            return;
+        }
+
+        try {
+            size_t parsedCharacters;
+            double amount = stod(amountText, &parsedCharacters);
+
+            if (parsedCharacters != amountText.length()) {
+                cout << "Error: Invalid amount in file." << endl;
+                inFile.close();
+                return;
+            }
+
+            loadedExpenses[loadedCount].e_date = date;
+            loadedExpenses[loadedCount].e_amount = amount;
+            loadedExpenses[loadedCount].e_category = category;
+            loadedExpenses[loadedCount].e_description = description;
+
+            loadedCount++;
+        } catch (...) {
+            cout << "Error: Invalid amount in file." << endl;
+            inFile.close();
+            return;
+        }
+    }
+
+    inFile.close();
+
+    for (int i = 0; i < loadedCount; i++) {
+        expenses[i] = loadedExpenses[i];
+    }
+
+    expenseCount = loadedCount;
+
+    cout << "Expense loaded successfully!" << endl;
+    cout << "Total records loaded: " << expenseCount << endl;
+}
 
 void mainmenu() {
     cout << "---------------------------------------" << endl;
@@ -75,10 +158,10 @@ int main() {
         case 4:
             editExpense();
             break;
-        //case 5:
+        case 5:
             saveData();
             break;
-        //case 6:
+        case 6:
             loadData();
             break;
         case 7:
@@ -121,7 +204,10 @@ void viewExpense() {
         return;
     }
 
-    cout << "Sort by: 1. Entry order 2. Date 3. Category" << endl;
+    cout << "Sort by:" << endl;
+    cout << "1. Entry order" << endl;
+    cout << "2. Date" << endl;
+    cout << "3. Category" << endl;
     cout << "Enter your choice: ";
     int sortChoice;
     if (!(cin >> sortChoice)) {
