@@ -109,6 +109,7 @@ void addExpense() {
 
   cout << "Enter date (YYYY-MM-DD): ";
   cin >> expenses[expenseCount].e_date;
+
   cout << "Enter amount: ";
   if (!(cin >> expenses[expenseCount].e_amount) ||
       expenses[expenseCount].e_amount <=
@@ -119,8 +120,14 @@ void addExpense() {
     cout << "Invalid amount. Please enter a positive number." << endl;
     return;
   }
+
   cout << "Enter category: ";
   cin >> expenses[expenseCount].e_category;
+  if (expenses[expenseCount].e_category.find_first_not_of(" \t\r\n") == string::npos) {
+    cout << "Category cannot be empty." << endl;
+    return;
+  }
+
   cout << "Enter description: ";
   cin.ignore();
   getline(cin, expenses[expenseCount].e_description);
@@ -128,7 +135,6 @@ void addExpense() {
   expenseCount++;
   cout << "Expense added successfully!" << endl;
   return;
-  1
 }
 
 void viewExpense() {
@@ -327,8 +333,8 @@ void editExpense() {
       size_t parsedCharacters = 0;
       double amount = stod(input, &parsedCharacters);
       size_t lastNonSpace = input.find_last_not_of(" \t\r\n");
-      if (lastNonSpace == string::npos ||
-          parsedCharacters != lastNonSpace + 1) {
+      if (amount <= 0 || (lastNonSpace != string::npos &&
+          parsedCharacters != lastNonSpace + 1)) {
         cout << "Invalid amount. Expense was not updated." << endl;
         return;
       }
