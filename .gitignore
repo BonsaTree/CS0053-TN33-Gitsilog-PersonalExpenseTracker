@@ -5,3 +5,4 @@ expenses.txt
 .vscode/
 clang-tidy-report.txt
 compile_flags.txt
+.clang-tidy
